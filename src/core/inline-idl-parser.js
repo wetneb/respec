@@ -112,6 +112,7 @@ function renderAttribute(details) {
   const { parent, identifier, renderParent } = details;
   const { identifier: linkFor } = parent || {};
   const html = hyperHTML`${renderParent ? "." : ""}<a
+      data-link-type="idl"
       data-xref-type="attribute|dict-member"
       data-link-for="${linkFor}"
       data-xref-for="${linkFor}"
@@ -128,6 +129,7 @@ function renderMethod(details) {
   const argsText = args.map(arg => `<var>${arg}</var>`).join(", ");
   const searchText = `${identifier}(${args.join(", ")})`;
   const html = hyperHTML`${parent && renderParent ? "." : ""}<a
+    data-link-type="idl"
     data-xref-type="${type}"
     data-link-for="${linkFor}"
     data-xref-for="${linkFor}"
@@ -145,6 +147,7 @@ function renderEnum(details) {
   const { identifier, enumValue, parent } = details;
   const forContext = parent ? parent.identifier : identifier;
   const html = hyperHTML`"<a
+    data-link-type="idl"
     data-xref-type="enum-value"
     data-link-for="${forContext}"
     data-xref-for="${forContext}"
@@ -160,6 +163,7 @@ function renderEnum(details) {
 function renderException(details) {
   const { identifier } = details;
   const html = hyperHTML`"<a
+    data-link-type="idl"
     data-cite="WebIDL"
     data-xref-type="exception"
     >${identifier}</a>"`;
@@ -173,6 +177,7 @@ function renderException(details) {
 function renderIdlPrimitiveType(details) {
   const { identifier } = details;
   const html = hyperHTML`<a
+    data-link-type="idl"
     data-cite="WebIDL"
     data-xref-type="interface"
     >${identifier}</a>`;

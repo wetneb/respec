@@ -149,7 +149,10 @@ function inlineAnchorMatches(matched) {
   const [isFor, content] = parts.length === 2 ? parts : ["", parts[0]];
   const processedContent = processInlineContent(content);
   const forValue = norm(isFor);
-  return hyperHTML`<a data-link-for="${forValue}" data-xref-for="${forValue}">${processedContent}</a>`;
+  return hyperHTML`<a
+    data-link-for="${forValue}"
+    data-xref-for="${forValue}"
+    data-link-type="dfn">${processedContent}</a>`;
 }
 
 function inlineCodeMatches(matched) {
