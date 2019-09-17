@@ -235,6 +235,7 @@ function resolveNameAndId(defn, parent) {
       const overload = resolveOverload(name, parent);
       if (overload) {
         name += overload;
+        idlId += overload;
       } else if (defn.arguments.length) {
         idlId += defn.arguments
           .map(arg => `-${arg.name.toLowerCase()}`)
@@ -353,11 +354,17 @@ export function run() {
 
   const validations = webidl2.validate(astArray);
   for (const validation of validations) {
+    let details = `<pre>${validation.context}</pre>`;
+    if (validation.autofix) {
+      validation.autofix();
+      details += `Try fixing as:
+      <pre>${webidl2.write(astArray[validation.sourceName])}</pre>`;
+    }
     showInlineError(
       idls[validation.sourceName],
       `WebIDL validation error: ${validation.bareMessage}`,
       validation.bareMessage,
-      { details: `<pre>${validation.context}</pre>` }
+      { details }
     );
   }
   document.normalize();
