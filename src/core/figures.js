@@ -6,7 +6,7 @@
 
 import { addId, renameElement, showInlineWarning, wrapInner } from "./utils.js";
 import { lang as defaultLang } from "../core/l10n.js";
-import hyperHTML from "hyperhtml";
+import hyperHTML from "nanohtml";
 
 export const name = "core/figures";
 
@@ -100,7 +100,9 @@ function getTableOfFiguresListItem(figureId, caption) {
     renameElement(anchor, "span").removeAttribute("href");
   });
   return hyperHTML`<li class='tofline'>
-    <a class='tocxref' href='${`#${figureId}`}'>${tofCaption.childNodes}</a>
+    <a class='tocxref' href='${`#${figureId}`}'>${[
+    ...tofCaption.childNodes,
+  ]}</a>
   </li>`;
 }
 

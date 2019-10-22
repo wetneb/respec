@@ -5,7 +5,7 @@
  * Performs syntax highlighting to all pre and code elements.
  */
 import ghCss from "text!../../assets/github.css";
-import html from "hyperhtml";
+import html from "nanohtml";
 import { msgIdGenerator } from "./utils.js";
 import { worker } from "./worker.js";
 export const name = "core/highlight";

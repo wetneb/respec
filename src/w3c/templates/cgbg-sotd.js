@@ -1,5 +1,5 @@
 // @ts-check
-import html from "hyperhtml";
+import html from "nanohtml";
 
 export default (conf, opts) => {
   return html`
@@ -77,6 +77,6 @@ export default (conf, opts) => {
         `
       : ""}
     ${conf.sotdAfterWGinfo ? opts.additionalContent : ""}
-    ${opts.additionalSections}
+    ${[...opts.additionalSections]}
   `;
 };

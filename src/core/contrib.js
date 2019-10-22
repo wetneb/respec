@@ -5,7 +5,7 @@
 // #gh-contributors: people whose PR have been merged.
 // Spec editors get filtered out automatically.
 import { fetchAndCache, joinAnd } from "./utils.js";
-import hyperHTML from "hyperhtml";
+import hyperHTML from "nanohtml";
 import { pub } from "./pubsubhub.js";
 export const name = "core/contrib";
 
@@ -79,10 +79,13 @@ function toHTML(contributors, element) {
   });
 
   if (element.tagName === "UL") {
-    hyperHTML(element)`${sortedContributors.map(
+    const children = sortedContributors.map(
       ({ name, login }) =>
-        `<li><a href="https://github.com/${login}">${name || login}</a></li>`
-    )}`;
+        hyperHTML`<li><a href=${`https://github.com/${login}`}>${name ||
+          login}</a></li>`
+    );
+    element.textContent = "";
+    element.append(...children);
     return;
   }
 

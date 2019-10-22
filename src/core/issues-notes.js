@@ -14,8 +14,9 @@
 import { addId, joinAnd, parents } from "./utils.js";
 import css from "text!../../assets/issues-notes.css";
 import { lang as defaultLang } from "../core/l10n.js";
-import hyperHTML from "hyperhtml";
+import hyperHTML from "nanohtml";
 import { pub } from "./pubsubhub.js";
+import raw from "nanohtml/raw";
 
 export const name = "core/issues-notes";
 
@@ -83,8 +84,10 @@ function handleIssues(ins, ghIssues, conf) {
     // wrap
     if (!isInline) {
       const cssClass = isFeatureAtRisk ? `${type} atrisk` : type;
-      const ariaRole = type === "note" ? "note" : null;
-      const div = hyperHTML`<div class="${cssClass}" role="${ariaRole}"></div>`;
+      const div = hyperHTML`<div class="${cssClass}"></div>`;
+      if (type === "note") {
+        div.setAttribute("role", "note");
+      }
       const title = document.createElement("span");
       const titleParent = hyperHTML`
         <div role='heading' class='${`${type}-title marker`}'>${title}</div>`;
@@ -150,7 +153,7 @@ function handleIssues(ins, ghIssues, conf) {
       }
       div.append(titleParent, body);
       const level = parents(titleParent, "section").length + 2;
-      titleParent.setAttribute("aria-level", level);
+      titleParent.setAttribute("aria-level", String(level));
     }
     pub(report.type, report);
   });
@@ -254,6 +257,7 @@ function isLight(rgb) {
  * @param {string} repoURL
  */
 function createLabelsGroup(labels, title, repoURL) {
+  /** @type {Node[]} */
   const labelsGroup = labels.map(label => createLabel(label, repoURL));
   const labelNames = labels.map(label => label.name);
   const joinedNames = joinAnd(labelNames);
@@ -331,7 +335,7 @@ export async function run(conf) {
   const ghIssues = await fetchAndStoreGithubIssues(conf.githubAPI);
   const { head: headElem } = document;
   headElem.insertBefore(
-    hyperHTML`<style>${[css]}</style>`,
+    hyperHTML`<style>${raw(css)}</style>`,
     headElem.querySelector("link")
   );
   handleIssues(issuesAndNotes, ghIssues, conf);

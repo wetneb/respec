@@ -8,7 +8,7 @@ import * as webidl2 from "webidl2";
 import { decorateDfn, findDfn } from "./dfn-finder.js";
 import { flatten, showInlineError, showInlineWarning } from "./utils.js";
 import css from "text!../../assets/webidl.css";
-import hyperHTML from "hyperhtml";
+import hyperHTML from "nanohtml";
 import { registerDefinition } from "./dfn-map.js";
 
 export const name = "core/webidl";
@@ -27,7 +27,7 @@ const templates = {
     if (!t.trim()) {
       return t;
     }
-    return hyperHTML`<span class='idlSectionComment'>${t}</span>`;
+    return hyperHTML`<span class='idlSectionComment'>${new Text(t)}</span>`;
   },
   generic(keyword) {
     // Shepherd classifies "interfaces" as starting with capital letters,
@@ -66,8 +66,14 @@ const templates = {
         }
       }
     }
-    return hyperHTML`<a
-      data-xref-type="${type}" data-cite="${cite}" data-lt="${lt}">${wrapped}</a>`;
+    const anchor = hyperHTML`<a data-xref-type="${type}">${wrapped}</a>`;
+    if (cite) {
+      anchor.dataset.cite = cite;
+    }
+    if (lt) {
+      anchor.dataset.lt = lt;
+    }
+    return anchor;
   },
   name(escaped, { data, parent }) {
     if (data.idlType && data.idlType.type === "argument-type") {
@@ -103,7 +109,7 @@ const templates = {
     }
     const parentName = parent ? parent.name : "";
     const { name, idlId } = getNameAndId(data, parentName);
-    return hyperHTML`<span class='${className}' id='${idlId}' data-idl data-title='${name}'>${contents}</span>`;
+    return hyperHTML`<span class='${className}' id='${idlId}' data-idl="" data-title='${name}'>${contents}</span>`;
   },
   extendedAttribute(contents) {
     const result = hyperHTML`<span class="extAttr">${contents}</span>`;
@@ -149,18 +155,20 @@ function defineIdlName(escaped, data, parent) {
      data-lt="default toJSON operation">${escaped}</a>`;
   }
   if (!data.partial) {
-    const dfn = hyperHTML`<dfn data-export data-dfn-type="${linkType}">${escaped}</dfn>`;
+    const dfn = hyperHTML`<dfn data-export="" data-dfn-type="${linkType}">${escaped}</dfn>`;
     registerDefinition(dfn, [name]);
     decorateDfn(dfn, data, parentName, name);
     return dfn;
   }
 
   const unlinkedAnchor = hyperHTML`<a
-    data-idl="${data.partial ? "partial" : null}"
     data-link-type="${linkType}"
     data-title="${data.name}"
     data-xref-type="${linkType}"
     >${escaped}</a>`;
+  if (data.partial) {
+    unlinkedAnchor.dataset.idl = "partial";
+  }
 
   const showWarnings =
     name && data.type !== "typedef" && !(data.partial && !dfn);
@@ -310,8 +318,8 @@ function renderWebIDL(idlElement, index) {
   }
   idlElement.classList.add("def", "idl");
   const html = webidl2.write(parse, { templates });
-  const render = hyperHTML.bind(idlElement);
-  render`${html}`;
+  idlElement.textContent = "";
+  idlElement.append(...html);
   idlElement.querySelectorAll("[data-idl]").forEach(elem => {
     if (elem.dataset.dfnFor) {
       return;

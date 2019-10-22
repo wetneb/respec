@@ -5,7 +5,7 @@
 
 export const name = "core/id-headers";
 import { addId } from "./utils.js";
-import hyperHTML from "hyperhtml";
+import hyperHTML from "nanohtml";
 
 export function run(conf) {
   /** @type {NodeListOf<HTMLElement>} */

@@ -1,9 +1,10 @@
 // @ts-check
 // Module w3c/conformance
 // Handle the conformance section properly.
-import html from "hyperhtml";
+import html from "nanohtml";
 import { joinAnd } from "../core/utils.js";
 import { pub } from "../core/pubsubhub.js";
+import raw from "nanohtml/raw";
 import { renderInlineCitation } from "../core/render-biblio.js";
 import { rfc2119Usage } from "../core/inlines.js";
 export const name = "w3c/conformance";
@@ -13,7 +14,7 @@ export const name = "w3c/conformance";
  * @param {*} conf
  */
 function processConformance(conformance, conf) {
-  const terms = [...Object.keys(rfc2119Usage)];
+  const terms = Object.keys(rfc2119Usage);
   // Add RFC2119 to blibliography
   if (terms.length) {
     conf.normativeReferences.add("RFC2119");
@@ -35,7 +36,7 @@ function processConformance(conformance, conf) {
     ${terms.length
       ? html`
           <p>
-            The key word${plural ? "s" : ""} ${[keywords]} in this document
+            The key word${plural ? "s" : ""} ${raw(keywords)} in this document
             ${plural ? "are" : "is"} to be interpreted as described in
             <a href="https://tools.ietf.org/html/bcp14">BCP 14</a>
             ${renderInlineCitation("RFC2119")}

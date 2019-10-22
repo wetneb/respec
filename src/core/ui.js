@@ -11,7 +11,7 @@
 //  - once we have something decent, merge, ship as 3.2.0
 
 import css from "text!../../assets/ui.css";
-import hyperHTML from "hyperhtml";
+import hyperHTML from "nanohtml";
 import { markdownToHtml } from "./markdown.js";
 // @ts-ignore
 import shortcut from "../shortcut.js";

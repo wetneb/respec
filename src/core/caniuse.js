@@ -7,7 +7,7 @@
 import { pub, sub } from "./pubsubhub.js";
 import caniuseCss from "text!../../assets/caniuse.css";
 import { createResourceHint } from "./utils.js";
-import hyperHTML from "hyperhtml";
+import hyperHTML from "nanohtml";
 
 export const name = "core/caniuse";
 
@@ -82,20 +82,23 @@ export async function run(conf) {
       return hyperHTML`<a href="${featureURL}">caniuse.com</a>`;
     }
   })();
+  const stats = hyperHTML`<dd class="caniuse-stats">
+    Fetching data from caniuse.com...
+  </dd>`;
   const definitionPair = hyperHTML`
     <dt class="caniuse-title">Browser support:</dt>
-    <dd class="caniuse-stats">${{
-      any: contentPromise,
-      placeholder: "Fetching data from caniuse.com...",
-    }}</dd>`;
+    ${stats}`;
   headDlElem.append(...definitionPair.childNodes);
-  await contentPromise;
+  const result = await contentPromise;
+  stats.textContent = "";
+  stats.append(result);
 
   // remove from export
   pub("amend-user-config", { caniuse: options.feature });
   sub("beforesave", outputDoc => {
-    hyperHTML.bind(outputDoc.querySelector(".caniuse-stats"))`
-      <a href="${featureURL}">caniuse.com</a>`;
+    const stats = outputDoc.querySelector(".caniuse-stats");
+    stats.textContent = "";
+    stats.append(hyperHTML`<a href="${featureURL}">caniuse.com</a>`);
   });
 }
 
@@ -185,7 +188,7 @@ function addBrowser([browserName, browserData]) {
   /** @param {[string, string[]]} args */
   const addBrowserVersion = ([version, supportKeys]) => {
     const { className, title } = getSupport(supportKeys);
-    return `<li class="${className}" title="${title}">${version}</li>`;
+    return hyperHTML`<li class="${className}" title="${title}">${version}</li>`;
   };
 
   const [latestVersion, ...olderVersions] = browserData;

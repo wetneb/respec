@@ -1,7 +1,8 @@
 // @ts-check
 import { humanDate, showInlineError, toShortIsoDate } from "../../core/utils";
 import { lang as defaultLang } from "../../core/l10n.js";
-import html from "hyperhtml";
+import html from "nanohtml";
+import raw from "nanohtml/raw";
 
 const localizationStrings = {
   en: {
@@ -19,14 +20,15 @@ export default (items = []) => {
   return items.map(getItem);
 
   function getItem(p) {
-    const personName = [p.name]; // treated as opt-in HTML by hyperHTML
-    const company = [p.company];
-    const editorid = p.w3cid ? parseInt(p.w3cid, 10) : null;
+    const personName = raw(p.name);
+    const company = raw(p.company);
     /** @type {HTMLElement} */
     const dd = html`
-      <dd class="p-author h-card vcard" data-editor-id="${editorid}"></dd>
+      <dd class="p-author h-card vcard"></dd>
     `;
-    const span = document.createDocumentFragment();
+    if (p.w3cid) {
+      dd.dataset.editorId = String(parseInt(p.w3cid, 10));
+    }
     const contents = [];
     if (p.mailto) {
       contents.push(html`
@@ -118,21 +120,20 @@ export default (items = []) => {
       timeElem.dateTime = toShortIsoDate(retiredDate);
       contents.push(
         html`
-          - ${l10n.until.concat(" ")}${[timeElem]}
+          - ${l10n.until.concat(" ")}${timeElem}
         `
       );
     }
 
-    // @ts-ignore: hyperhtml types only support Element but we use a DocumentFragment here
-    html.bind(span)`${contents}`;
-    dd.appendChild(span);
+    dd.append(...contents);
     return dd;
   }
 
   function getExtra(extra) {
-    const span = html`
-      <span class="${extra.class || null}"></span>
-    `;
+    const span = document.createElement("span");
+    if (extra.class) {
+      span.classList.add(extra.class);
+    }
     let textContainer = span;
     if (extra.href) {
       textContainer = html`

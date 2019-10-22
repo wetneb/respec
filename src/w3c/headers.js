@@ -94,7 +94,6 @@ import { ISODate, concatDate, joinAnd } from "../core/utils.js";
 import cgbgHeadersTmpl from "./templates/cgbg-headers.js";
 import cgbgSotdTmpl from "./templates/cgbg-sotd.js";
 import headersTmpl from "./templates/headers.js";
-import hyperHTML from "hyperhtml";
 import { pub } from "../core/pubsubhub.js";
 import sotdTmpl from "./templates/sotd.js";
 
@@ -599,7 +598,9 @@ export function run(conf) {
     );
   }
 
-  hyperHTML.bind(sotd)`${populateSoTD(conf, sotd)}`;
+  const populated = populateSoTD(conf, sotd);
+  sotd.textContent = "";
+  sotd.append(...populated.childNodes);
 
   if (!conf.implementationReportURI && conf.isCR) {
     pub(

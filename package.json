@@ -100,6 +100,7 @@
     "command-line-usage": "^6.0.2",
     "epipebomb": "^1.0.0",
     "loading-indicator": "^2.0.0",
+    "nanohtml": "^1.8.1",
     "opencollective": "^1.0.3",
     "opencollective-postinstall": "^2.0.2",
     "prompt": "^1.0.0",
