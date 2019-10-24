@@ -104,7 +104,7 @@ function inlineBibrefMatches(matched, txt, conf) {
   const cleanRef = ref.replace(/^(!|\?)/, "");
   if (illegal && !conf.normativeReferences.has(cleanRef)) {
     showInlineWarning(
-      /** @type {HTMLCiteElement} */ (cite.childNodes[1]),
+      /** @type {HTMLElement} */ (cite.childNodes[1]), // cite element
       "Normative references in informative sections are not allowed. " +
         `Remove '!' from the start of the reference \`[[${ref}]]\``
     );
