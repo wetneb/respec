@@ -2,9 +2,9 @@
 // Parses an inline IDL string (`{{ idl string }}`)
 //  and renders its components as HTML
 
+import { optdata, showInlineError } from "./utils";
 import hyperHTML from "nanohtml";
 import raw from "nanohtml/raw";
-import { showInlineError } from "./utils";
 const idlPrimitiveRegex = /^[a-z]+(\s+[a-z]+)+$/; // {{unrestricted double}} {{ double }}
 const exceptionRegex = /\B"([^"]*)"\B/; // {{ "SomeException" }}
 const methodRegex = /(\w+)\((.*)\)$/;
@@ -154,15 +154,12 @@ function renderInternalSlot(details) {
   const { identifier, parent, renderParent } = details;
   const { identifier: linkFor } = parent || {};
   const lt = `[[${identifier}]]`;
-  const dot = parent && renderParent ? "." : "";
-  const anchor = hyperHTML`<a
+  const html = hyperHTML`${parent && renderParent ? "." : ""}[[<a
     data-xref-type="attribute"
-    data-lt="${lt}">${identifier}</a>`;
-  if (linkFor) {
-    anchor.dataset.linkFor = linkFor;
-    anchor.dataset.xrefFor = linkFor;
-  }
-  return hyperHTML`${dot}[[${anchor}]]${""}`; // TODO: remove dangling empty string
+    ${optdata("link-for", linkFor)}
+    ${optdata("xref-for", linkFor)}
+    data-lt="${lt}">${identifier}</a>]]`;
+  return html;
 }
 
 /**
@@ -207,15 +204,13 @@ function renderMethod(details) {
 function renderEnum(details) {
   const { identifier, enumValue, parent } = details;
   const forContext = parent ? parent.identifier : identifier;
-  const anchor = hyperHTML`<a
+  const html = hyperHTML`"<a
     data-xref-type="enum-value"
     data-link-for="${forContext}"
     data-xref-for="${forContext}"
-    >${enumValue}</a>`;
-  if (!enumValue) {
-    anchor.dataset.lt = "the-empty-string";
-  }
-  return hyperHTML`"${anchor}"`;
+    ${optdata("lt", !enumValue ? "the-empty-string" : null)}
+    >${enumValue}</a>"`;
+  return html;
 }
 
 /**
