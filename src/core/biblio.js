@@ -13,6 +13,7 @@ export const biblio = {};
 export const name = "core/biblio";
 
 const bibrefsURL = new URL("https://api.specref.org/bibrefs?refs=");
+const crossrefURL = new URL("https://api.crossref.org/works?filter=");
 
 // Opportunistically dns-prefetch to bibref server, as we don't know yet
 // if we will actually need to download references yet.
@@ -28,16 +29,79 @@ const done = new Promise(resolve => {
   doneResolver = resolve;
 });
 
+/*
+ * Fetches a set of references from Specref
+ * and / or Crossref, depending on their ids
+ * (Crossref ids start with "doi:").
+ *
+ * Returns a map from reference ids to reference
+ * contents.
+ */
 export async function updateFromNetwork(
   refs,
   options = { forceUpdate: false }
 ) {
   const refsToFetch = [...new Set(refs)].filter(ref => ref.trim());
+  // Split the ids by source
+  const specrefIds = refsToFetch.filter(ref => !ref.startsWith("doi:"));
+  const crossrefIds = refsToFetch.filter(ref => ref.startsWith("doi:"));
+
+  // Fetch the ids
+  const specrefData = await updateFromSpecref(specrefIds, options);
+  const crossrefData = await updateFromCrossref(crossrefIds);
+
+  // Store them in the indexed DB
+  const data = { ...specrefData, ...crossrefData };
+  // SpecRef updates every hour, so we should follow suit
+  // https://github.com/tobie/specref#hourly-auto-updating
+  const expires = response.headers.has("Expires")
+    ? Math.min(Date.parse(response.headers.get("Expires")), oneHourFromNow)
+    : oneHourFromNow;
+  try {
+    await biblioDB.addAll(data, expires);
+  } catch (err) {
+    console.error(err);
+  }
+  return data;
+}
+
+export async function updateFromCrossref(refsToFetch) {
+  if (!refsToFetch.length || navigator.onLine === false) {
+    return null;
+  }
+  let response;
+  try {
+    response = await fetch(crossrefURL.href + refsToFetch.join(","));
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+  const data = await response.json();
+
+  const keyToMetadata = data.message.items.reduce((collector, item) => {
+    if (item.DOI) {
+      const id = `doi:${item.DOI}`;
+      item.id = id;
+      delete item.reference;
+      collector[id] = item;
+    } else {
+      console.error("Invalid DOI metadata returned by Crossref");
+    }
+    return collector;
+  }, {});
+  return keyToMetadata;
+}
+
+export async function updateFromSpecref(
+  refsToFetch,
+  options = { forceUpdate: false }
+) {
   // Update database if needed, if we are online
   if (!refsToFetch.length || navigator.onLine === false) {
     return null;
   }
   let response;
+  const oneHourFromNow = Date.now() + 1000 * 60 * 60 * 1;
   try {
     response = await fetch(bibrefsURL.href + refsToFetch.join(","));
   } catch (err) {
@@ -49,17 +113,6 @@ export async function updateFromNetwork(
   }
   /** @type {Conf['biblio']} */
   const data = await response.json();
-  // SpecRef updates every hour, so we should follow suit
-  // https://github.com/tobie/specref#hourly-auto-updating
-  const oneHourFromNow = Date.now() + 1000 * 60 * 60 * 1;
-  try {
-    const expires = response.headers.has("Expires")
-      ? Math.min(Date.parse(response.headers.get("Expires")), oneHourFromNow)
-      : oneHourFromNow;
-    await biblioDB.addAll(data, expires);
-  } catch (err) {
-    console.error(err);
-  }
   return data;
 }
 
