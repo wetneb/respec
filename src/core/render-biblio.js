@@ -2,7 +2,7 @@
 // Module core/render-biblio
 // renders the biblio data pre-processed in core/biblio
 
-import { addId } from "./utils.js";
+import { addId, orcidSvgHtml } from "./utils.js";
 import { biblio } from "./biblio.js";
 import { lang as defaultLang } from "../core/l10n.js";
 import { hyperHTML } from "./import-maps.js";
@@ -309,7 +309,11 @@ function renderCrossrefAuthor(author) {
     name = author.literal;
   }
   if (name) {
-    return author.ORCID ? `<a href="${author.ORCID}">${name}</a>` : name;
+    if (author.ORCID) {
+        return `${name}&nbsp;<a href="${author.ORCID}">${orcidSvgHtml}</a>`;
+    } else {
+        return name;
+    }
   }
   return null;
 }
