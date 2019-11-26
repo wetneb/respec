@@ -4,7 +4,7 @@
 // e.g. set the canonical URL for the document if configured
 import { W3CNotes, recTrackStatus, registryTrackStatus } from "./headers.js";
 import { html } from "../core/import-maps.js";
-import { resolveRef } from "../core/biblio.js";
+import { resolveRef, citationMetadataToJsonLd } from "../core/biblio.js";
 import { showWarning } from "../core/utils.js";
 export const name = "w3c/seo";
 
@@ -148,7 +148,7 @@ async function addJSONLDInfo(conf, doc) {
   );
   jsonld.citation = citationContents
     .filter(ref => typeof ref === "object")
-    .map(addRef);
+    .map(citationMetadataToJsonld);
 
   const script = doc.createElement("script");
   script.type = "application/ld+json";
@@ -175,28 +175,3 @@ function addPerson({ name, url, mailto, company, companyURL }) {
   return ed;
 }
 
-/**
- * Create a reference URL from the ref
- */
-function addRef(ref) {
-  const { href: id, title: name, href: url } = ref;
-  const jsonld = {
-    id,
-    type: "TechArticle",
-    name,
-    url,
-  };
-  if (ref.authors) {
-    jsonld.creator = ref.authors.map(a => ({ name: a }));
-  }
-  if (ref.rawDate) {
-    jsonld.publishedDate = ref.rawDate;
-  }
-  if (ref.isbn) {
-    jsonld.identifier = ref.isbn;
-  }
-  if (ref.publisher) {
-    jsonld.publisher = { name: ref.publisher };
-  }
-  return jsonld;
-}
