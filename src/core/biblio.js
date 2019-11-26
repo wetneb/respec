@@ -210,3 +210,135 @@ export async function run(conf) {
   Object.assign(biblio, conf.localBiblio);
   finish();
 }
+
+export function citationMetadataToJsonld(ref) {
+  if (ref.id.startsWith('doi:')) {
+    return crossrefMetadataToJsonld(ref);
+  } else {
+    return specrefMetadataToJsonld(ref);
+  }
+}
+
+/**
+ * Translates specref references to JSON-LD objects
+ */
+function specrefMetadataToJsonld(ref) {
+  const { href: id, title: name, href: url } = ref;
+  const jsonld = {
+    id,
+    type: "TechArticle",
+    name,
+    url,
+  };
+  if (ref.authors) {
+    jsonld.creator = ref.authors.map(a => ({ name: a }));
+  }
+  if (ref.rawDate) {
+    jsonld.publishedDate = ref.rawDate;
+  }
+  if (ref.isbn) {
+    jsonld.identifier = ref.isbn;
+  }
+  if (ref.publisher) {
+    jsonld.publisher = { name: ref.publisher };
+  }
+  return jsonld;
+}
+
+/**
+ * Translates Crossref references to JSON-LD objects
+ */
+function crossrefMetadataToJsonld(ref) {
+  const {
+    URL: url,
+    title: name,
+    subtitle: subtitle,
+  } = ref;
+  const jsonld = {
+    url,
+    name,
+    subtitle,
+  };
+  const identifiers = [];
+  if (ref.author && ref.author.length) {
+    jsonld.creator = ref.author.map(crossrefAuthorToJsonld);
+  }
+  if (ref.publisher) {
+    jsonld.publisher = {name: ref.publisher};
+  }
+  if (ref.DOI) {
+    identifiers.push(ref.DOI);
+  }
+  return jsonld;
+}
+
+function crossrefAuthorToJsonld(author) {
+  let { given, family, literal } = author;
+  let jsonld = {
+    givenName: given,
+    familyName: family,
+    name: literal,
+  };
+  if (given && family && !literal) {
+    jsonld.name = `${given} ${family}`;
+  } else if (family && !literal) {
+    jsonld.name = family;
+  }
+  if (author.ORCID) {
+    jsonld.sameAs = author.ORCID;
+  }
+  return jsonld;
+}
+
+/*
+export function renderCrossrefReference(ref) {
+  let title = ref.title;
+  if (ref.subtitle) {
+    title = `${ref.title}. ${ref.subtitle}`;
+  }
+  let output = `<cite>${title}</cite>`;
+
+  output = ref.URL ? `<a href="${ref.URL}">${output}</a>. ` : `${output}. `;
+
+  if (ref.author && ref.author.length) {
+    output += ref.author.map(renderCrossrefAuthor).join(", ");
+    output += ". ";
+  }
+
+  // Add bibliographic reference part
+  const journalRefParts = [];
+  const containerTitles = ref["container-title"];
+  if (containerTitles) {
+    const rendered =
+      typeof containerTitles === "object"
+        ? containerTitles[0]
+        : containerTitles;
+    journalRefParts.push(rendered);
+  } else if (ref.publisher) {
+    journalRefParts.push(ref.publisher);
+  }
+  if (ref.volume && ref.issue) {
+    journalRefParts.push(`<strong>${ref.volume}</strong> (${ref.issue})`);
+  }
+  if (ref.page && typeof ref.page === "string") {
+    journalRefParts.push(`pp. ${ref.page}`);
+  }
+  if (ref.issued && ref.issued["date-parts"]) {
+    journalRefParts.push(ref.issued["date-parts"].join("-"));
+  }
+  output = `${output} ${endWithDot(journalRefParts.join(", "))} `;
+
+  // Add identifiers
+  const identifiers = [];
+  if (ref.DOI)
+    identifiers.push(
+      `DOI:&nbsp;<a href="https://doi.org/"${ref.DOI}">${ref.DOI}</a>`
+    );
+  if (ref.ISBN && ref.type === "book") {
+    identifiers.push(`ISBN:&nbsp;${ref.ISBN.map(formatISBN).join(", ")}`);
+  }
+  output = `${output} ${identifiers.join(", ")}`;
+
+  return output;
+}
+*/

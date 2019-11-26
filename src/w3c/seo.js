@@ -3,7 +3,7 @@
 // Manages SEO information for documents
 // e.g. set the canonical URL for the document if configured
 import { pub } from "../core/pubsubhub.js";
-import { resolveRef } from "../core/biblio.js";
+import { resolveRef, citationMetadataToJsonld } from "../core/biblio.js";
 export const name = "w3c/seo";
 export async function run(conf) {
   // Don't include a canonical URL for documents
@@ -143,7 +143,7 @@ async function addJSONLDInfo(conf, doc) {
   );
   jsonld.citation = citationContents
     .filter(ref => typeof ref === "object")
-    .map(addRef);
+    .map(citationMetadataToJsonld);
 
   const script = doc.createElement("script");
   script.type = "application/ld+json";
@@ -170,28 +170,3 @@ function addPerson({ name, url, mailto, company, companyURL }) {
   return ed;
 }
 
-/**
- * Create a reference URL from the ref
- */
-function addRef(ref) {
-  const { href: id, title: name, href: url } = ref;
-  const jsonld = {
-    id,
-    type: "TechArticle",
-    name,
-    url,
-  };
-  if (ref.authors) {
-    jsonld.creator = ref.authors.map(a => ({ name: a }));
-  }
-  if (ref.rawDate) {
-    jsonld.publishedDate = ref.rawDate;
-  }
-  if (ref.isbn) {
-    jsonld.identifier = ref.isbn;
-  }
-  if (ref.publisher) {
-    jsonld.publisher = { name: ref.publisher };
-  }
-  return jsonld;
-}
