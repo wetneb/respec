@@ -289,7 +289,7 @@ export function renderCrossrefReference(ref) {
   const identifiers = [];
   if (ref.DOI)
     identifiers.push(
-      `DOI:&nbsp;<a href="https://doi.org/"${ref.DOI}">${ref.DOI}</a>`
+      `DOI:&nbsp;<a href="https://doi.org/${ref.DOI}">${ref.DOI}</a>`
     );
   if (ref.ISBN && ref.type === "book") {
     identifiers.push(`ISBN:&nbsp;${ref.ISBN.map(formatISBN).join(", ")}`);
