@@ -4,7 +4,7 @@
 // e.g. set the canonical URL for the document if configured
 import { W3CNotes, recTrackStatus, registryTrackStatus } from "./headers.js";
 import { html } from "../core/import-maps.js";
-import { resolveRef, citationMetadataToJsonLd } from "../core/biblio.js";
+import { resolveRef, citationMetadataToJsonld } from "../core/biblio.js";
 import { showWarning } from "../core/utils.js";
 export const name = "w3c/seo";
 

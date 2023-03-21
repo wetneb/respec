@@ -50,18 +50,7 @@ export async function updateFromNetwork(
   const specrefData = await updateFromSpecref(specrefIds, options);
   const crossrefData = await updateFromCrossref(crossrefIds);
 
-  // Store them in the indexed DB
   const data = { ...specrefData, ...crossrefData };
-  // SpecRef updates every hour, so we should follow suit
-  // https://github.com/tobie/specref#hourly-auto-updating
-  const expires = response.headers.has("Expires")
-    ? Math.min(Date.parse(response.headers.get("Expires")), oneHourFromNow)
-    : oneHourFromNow;
-  try {
-    await biblioDB.addAll(data, expires);
-  } catch (err) {
-    console.error(err);
-  }
   return data;
 }
 
@@ -70,6 +59,7 @@ export async function updateFromCrossref(refsToFetch) {
     return null;
   }
   let response;
+  const oneDayFromNow = Date.now() + 1000 * 60 * 60 * 24;
   try {
     response = await fetch(crossrefURL.href + refsToFetch.join(","));
   } catch (err) {
@@ -89,6 +79,11 @@ export async function updateFromCrossref(refsToFetch) {
     }
     return collector;
   }, {});
+  try {
+    await biblioDB.addAll(keyToMetadata, oneDayFromNow);
+  } catch (err) {
+    console.error(err);
+  }
   return keyToMetadata;
 }
 
@@ -113,6 +108,16 @@ export async function updateFromSpecref(
   }
   /** @type {Conf['biblio']} */
   const data = await response.json();
+  // SpecRef updates every hour, so we should follow suit
+  // https://github.com/tobie/specref#hourly-auto-updating
+  const expires = response.headers.has("Expires")
+    ? Math.min(Date.parse(response.headers.get("Expires")), oneHourFromNow)
+    : oneHourFromNow;
+  try {
+    await biblioDB.addAll(data, expires);
+  } catch (err) {
+    console.error(err);
+  }
   return data;
 }
 

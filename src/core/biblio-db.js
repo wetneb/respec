@@ -137,6 +137,7 @@ export const biblioDB = {
    * @return {Promise<BiblioData?>} Resolves with the retrieved object, or null.
    */
   async get(type, id) {
+    console.log('getting '+id);
     if (!ALLOWED_TYPES.has(type)) {
       throw new TypeError(`Invalid type: ${type}`);
     }
@@ -160,6 +161,8 @@ export const biblioDB = {
     if (!data) {
       return;
     }
+    console.log('bibliodb addAll');
+    console.log(data);
     const aliasesAndRefs = { alias: [], reference: [] };
     for (const id of Object.keys(data)) {
       /** @type {BiblioData} */

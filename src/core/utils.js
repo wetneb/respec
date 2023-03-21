@@ -6,7 +6,6 @@ import { lang as docLang } from "./l10n.js";
 import { html } from "./import-maps.js";
 import { pub } from "./pubsubhub.js";
 import { reindent } from "./reindent.js";
-import { hyperHTML as html } from "./import-maps.js";
 export const name = "core/utils";
 
 const dashes = /-/g;

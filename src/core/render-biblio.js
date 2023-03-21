@@ -2,7 +2,7 @@
 // Module core/render-biblio
 // renders the biblio data pre-processed in core/biblio
 
-import { addId, getIntlData, showerror, orcidSvgHtml } from "./utils.js";
+import { addId, getIntlData, showError, orcidSvgHtml } from "./utils.js";
 import { biblio } from "./biblio.js";
 import { html } from "./import-maps.js";
 
